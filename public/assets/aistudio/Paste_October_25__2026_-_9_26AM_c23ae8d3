@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>瑪利歐蘑菇冒險風格 - 長輩請假通知系統</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* 像素風格與瑪利歐主題自訂樣式 */
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background-color: #5c94fc; /* 瑪利歐經典藍天色 */
+      background-image: 
+        radial-gradient(#ffffff 15%, transparent 16%),
+        radial-gradient(#ffffff 15%, transparent 16%);
+      background-size: 60px 60px;
+      background-position: 0 0, 30px 30px;
+    }
+
+    .mario-font {
+      font-family: 'Press Start 2P', 'Noto Sans TC', cursive;
+    }
+
+    /* 像素邊框風格 */
+    .pixel-box {
+      border: 4px solid #000;
+      box-shadow: 0 6px 0 #000, inset 0 0 0 4px #fff;
+    }
+
+    .pixel-box-green {
+      background-color: #22b14c;
+      border: 4px solid #000;
+      box-shadow: 0 6px 0 #000;
+    }
+
+    .pixel-btn {
+      position: relative;
+      transition: transform 0.1s, box-shadow 0.1s;
+      border: 3px solid #000;
+      box-shadow: 0 4px 0 #000;
+      font-weight: bold;
+    }
+
+    .pixel-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 #000;
+    }
+
+    .pixel-btn-red {
+      background-color: #e52521;
+      color: white;
+    }
+
+    .pixel-btn-yellow {
+      background-color: #fbd000;
+      color: #000;
+    }
+
+    .pixel-btn-green {
+      background-color: #43b047;
+      color: white;
+    }
+
+    .pixel-btn-blue {
+      background-color: #00247d;
+      color: white;
+    }
+
+    /* 自訂捲軸 */
+    ::-webkit-scrollbar {
+      width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border: 2px solid #000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #e52521;
+      border: 2px solid #000;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-12 text-gray-900">
+
+  <!-- 頂部標頭 -->
+  <header class="bg-red-600 border-b-8 border-black py-6 px-4 text-center text-white relative shadow-lg">
+    <div class="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="text-4xl animate-bounce">🍄</span>
+        <div class="text-left">
+          <h1 class="text-2xl md:text-3xl font-black tracking-wider text-yellow-300 drop-shadow-[0_3px_0_#000]">
+            長輩請假通知 🌟
+          </h1>
+          <p class="text-xs text-white opacity-90">Super Mario Style Mushroom Adventure</p>
+        </div>
+      </div>
+      <div class="bg-yellow-400 text-black px-4 py-2 rounded-xl font-bold border-2 border-black shadow-[2px_2px_0_#000]">
+        ✨ 蘑菇冒險隊 🚩
+      </div>
+    </div>
+  </header>
+
+  <!-- 主容器 -->
+  <main class="max-w-4xl mx-auto mt-6 px-4">
+
+    <!-- 1. 基本資訊區 (日期 & 個案) -->
+    <section class="bg-white rounded-2xl p-6 mb-6 pixel-box">
+      <h2 class="text-xl font-extrabold text-red-600 mb-4 flex items-center gap-2">
+        <span>📅</span> 基本資訊與備註
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label class="block font-bold mb-1 text-gray-700">📅 請假日期 (可選取日曆)：</label>
+          <input type="date" id="leaveDatePicker" onchange="updateDateDisplay()"
+            class="w-full border-2 border-black rounded-lg p-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400 bg-yellow-50 cursor-pointer">
+          <input type="text" id="leaveDate" readonly 
+            class="w-full border-2 border-transparent mt-1 text-sm font-bold text-red-600 bg-transparent focus:outline-none" placeholder="選擇日期後自動呈現">
+        </div>
+        <div>
+          <label class="block font-bold mb-1 text-gray-700">👤 個案 (選填)：</label>
+          <input type="text" id="caseName" placeholder="例如：王小明 阿公 (選填)" 
+            class="w-full border-2 border-black rounded-lg p-2 font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400">
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 出席狀態區 -->
+    <section class="bg-yellow-100 rounded-2xl p-6 mb-6 border-4 border-black shadow-[4px_4px_0_#000]">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+        <h2 class="text-xl font-extrabold text-amber-800 flex items-center gap-2">
+          <span>🏫</span> 1. 出席狀態
+        </h2>
+        <!-- 整組整列加選按鈕 -->
+        <div class="flex flex-wrap gap-2">
+          <button onclick="batchSetAttendance('上午上課')" class="pixel-btn pixel-btn-yellow text-xs px-2 py-1 rounded">全選：上午上課</button>
+          <button onclick="batchSetAttendance('下午上課')" class="pixel-btn pixel-btn-yellow text-xs px-2 py-1 rounded">全選：下午上課</button>
+          <button onclick="batchSetAttendance('整天休息')" class="pixel-btn pixel-btn-red text-xs px-2 py-1 rounded">全選：整天休息</button>
+        </div>
+      </div>
+
+      <div id="attendanceContainer" class="space-y-3">
+        <!-- 動態產生欄位 -->
+      </div>
+
+      <button onclick="addAttendanceRow()" class="mt-4 w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 rounded-xl border-2 border-black shadow-[2px_2px_0_#000] flex items-center justify-center gap-2">
+        <span>➕</span> 新增出席名單
+      </button>
+    </section>
+
+    <!-- 3. 交通車狀態區 -->
+    <section class="bg-blue-100 rounded-2xl p-6 mb-6 border-4 border-black shadow-[4px_4px_0_#000]">
+      <div class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-2">
+        <h2 class="text-xl font-extrabold text-blue-800 flex items-center gap-2">
+          <span>🚐</span> 2. 交通車接送
+        </h2>
+        <!-- 整組整列加選按鈕 -->
+        <div class="flex flex-wrap gap-2">
+          <button onclick="batchSetBus('早上不用載')" class="pixel-btn pixel-btn-blue text-xs px-2 py-1 rounded">全選：早上不用載</button>
+          <button onclick="batchSetBus('下午不用載')" class="pixel-btn pixel-btn-blue text-xs px-2 py-1 rounded">全選：下午不用載</button>
+          <button onclick="batchSetBus('整天不用載')" class="pixel-btn pixel-btn-red text-xs px-2 py-1 rounded">全選：整天不用載</button>
+        </div>
+      </div>
+
+      <div id="busContainer" class="space-y-3">
+        <!-- 動態產生欄位 -->
+      </div>
+
+      <button onclick="addBusRow()" class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 rounded-xl border-2 border-black shadow-[2px_2px_0_#000] flex items-center justify-center gap-2">
+        <span>➕</span> 新增交通車名單
+      </button>
+    </section>
+
+    <!-- 4. 伙食安排區 -->
+    <section class="bg-green-100 rounded-2xl p-6 mb-6 border-4 border-black shadow-[4px_4px_0_#000]">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-extrabold text-green-800 flex items-center gap-2">
+          <span>🍱</span> 3. 伙食需求
+        </h2>
+      </div>
+
+      <div id="mealContainer" class="space-y-3">
+        <!-- 動態產生欄位 -->
+      </div>
+
+      <button onclick="addMealRow()" class="mt-4 w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2 rounded-xl border-2 border-black shadow-[2px_2px_0_#000] flex items-center justify-center gap-2">
+        <span>➕</span> 新增伙食名單
+      </button>
+    </section>
+
+    <!-- 5. 備註區 -->
+    <section class="bg-pink-100 rounded-2xl p-6 mb-6 border-4 border-black shadow-[4px_4px_0_#000]">
+      <h2 class="text-xl font-extrabold text-pink-800 mb-4 flex items-center gap-2">
+        <span>📌</span> 4. 備註與原因
+      </h2>
+      <div id="noteContainer" class="space-y-3">
+        <!-- 動態產生欄位 -->
+      </div>
+      <button onclick="addNoteRow()" class="mt-4 w-full bg-pink-500 hover:bg-pink-600 text-white font-bold py-2 rounded-xl border-2 border-black shadow-[2px_2px_0_#000] flex items-center justify-center gap-2">
+        <span>➕</span> 新增備註
+      </button>
+    </section>
+
+    <!-- 操作按鈕區 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-8">
+      <button onclick="generateText()" class="pixel-btn pixel-btn-yellow py-4 rounded-2xl text-lg flex items-center justify-center gap-2">
+        <span>📝</span> 產生文字並複製
+      </button>
+      <button onclick="generateImagePreview()" class="pixel-btn pixel-btn-red py-4 rounded-2xl text-lg flex items-center justify-center gap-2">
+        <span>🖼️</span> 產生瑪利歐圖卡預覽
+      </button>
+    </div>
+
+    <!-- 成果展現區：文字預覽 -->
+    <section id="textPreviewSection" class="hidden bg-white rounded-2xl p-6 mb-6 pixel-box">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="font-bold text-lg text-gray-800">📋 產生之請假通知文字：</h3>
+        <span id="copyNotice" class="text-xs text-green-600 font-bold hidden">已成功複製到剪貼簿！</span>
+      </div>
+      <textarea id="outputText" rows="10" class="w-full border-2 border-gray-800 p-3 rounded-lg font-mono text-sm bg-gray-50 focus:outline-none" readonly></textarea>
+    </section>
+
+    <!-- 成果展現區：圖片預覽 (HTML Canvas 繪製) -->
+    <section id="imagePreviewSection" class="hidden bg-white rounded-2xl p-6 mb-6 pixel-box text-center">
+      <h3 class="font-bold text-lg text-gray-800 mb-2">🌟 瑪利歐冒險風格圖卡預覽：</h3>
+      <p class="text-xs text-gray-500 mb-4">（手機用戶可長按下方圖片進行儲存或分享）</p>
+      
+      <div class="overflow-x-auto flex justify-center mb-4">
+        <img id="previewImage" class="max-w-full border-4 border-black rounded-xl shadow-lg hidden" alt="請假通知圖卡">
+        <canvas id="marioCanvas" class="hidden"></canvas>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="text-center text-white text-xs py-4 font-bold drop-shadow-[0_1px_1px_#000]">
+    🍄 長輩請假通知系統 - 瑪利歐冒險特別版 ✨
+  </footer>
+
+  <!-- JavaScript 邏輯部分 -->
+  <script>
+    // 預設日期帶入今天 (自動更新為當日日期並設定至日曆選單)
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const date = String(today.getDate()).padStart(2, '0');
+      
+      const datePicker = document.getElementById('leaveDatePicker');
+      datePicker.value = `${year}-${month}-${date}`;
+      
+      // 更新文字顯示格式
+      updateDateDisplay();
+
+      // 初始化預設為空白範例列 (不預先帶入預設文字，讓使用者自由填寫)
+      addAttendanceRow();
+      addBusRow();
+      addMealRow();
+      addNoteRow();
+    });
+
+    // 日期選取更新處理 (自動產生「月日星期」)
+    function updateDateDisplay() {
+      const pickerVal = document.getElementById('leaveDatePicker').value;
+      if (!pickerVal) {
+        document.getElementById('leaveDate').value = '';
+        return;
+      }
+      
+      // 解析日期（避免時區偏差）
+      const parts = pickerVal.split('-');
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      
+      const month = d.getMonth() + 1;
+      const date = d.getDate();
+      const days = ['日', '一', '二', '三', '四', '五', '六'];
+      const dayName = days[d.getDay()];
+      
+      document.getElementById('leaveDate').value = `${month}月${date}日 (${dayName})`;
+    }
+
+    // --- 1. 出席名單動態新增/刪除/全選 ---
+    function addAttendanceRow(name = '', status = '整天休息') {
+      const container = document.getElementById('attendanceContainer');
+      const div = document.createElement('div');
+      div.className = 'attendance-row bg-white p-3 rounded-xl border-2 border-black flex flex-wrap items-center gap-2 shadow-sm';
+      div.innerHTML = `
+        <input type="text" placeholder="姓名 (選填)" value="${name}" class="att-name border-2 border-gray-400 p-1.5 rounded-lg flex-1 min-w-[120px] font-bold">
+        <select class="att-status border-2 border-gray-400 p-1.5 rounded-lg font-bold bg-yellow-50">
+          <option value="上午上課" ${status === '上午上課' ? 'selected' : ''}>上午上課</option>
+          <option value="下午上課" ${status === '下午上課' ? 'selected' : ''}>下午上課</option>
+          <option value="整天休息" ${status === '整天休息' ? 'selected' : ''}>整天休息</option>
+        </select>
+        <button onclick="this.parentElement.remove()" class="bg-red-500 text-white font-bold px-2 py-1 rounded-lg border border-black hover:bg-red-600">❌</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function batchSetAttendance(status) {
+      const statuses = document.querySelectorAll('.att-status');
+      if (statuses.length === 0) {
+        addAttendanceRow('', status);
+      } else {
+        statuses.forEach(select => select.value = status);
+      }
+    }
+
+    // --- 2. 交通車動態新增/刪除/全選 ---
+    function addBusRow(name = '', status = '整天不用載') {
+      const container = document.getElementById('busContainer');
+      const div = document.createElement('div');
+      div.className = 'bus-row bg-white p-3 rounded-xl border-2 border-black flex flex-wrap items-center gap-2 shadow-sm';
+      div.innerHTML = `
+        <input type="text" placeholder="姓名 (選填)" value="${name}" class="bus-name border-2 border-gray-400 p-1.5 rounded-lg flex-1 min-w-[120px] font-bold">
+        <select class="bus-status border-2 border-gray-400 p-1.5 rounded-lg font-bold bg-blue-50">
+          <option value="早上不用載" ${status === '早上不用載' ? 'selected' : ''}>早上不用載</option>
+          <option value="下午不用載" ${status === '下午不用載' ? 'selected' : ''}>下午不用載</option>
+          <option value="整天不用載" ${status === '整天不用載' ? 'selected' : ''}>整天不用載</option>
+        </select>
+        <button onclick="this.parentElement.remove()" class="bg-red-500 text-white font-bold px-2 py-1 rounded-lg border border-black hover:bg-red-600">❌</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function batchSetBus(status) {
+      const statuses = document.querySelectorAll('.bus-status');
+      if (statuses.length === 0) {
+        addBusRow('', status);
+      } else {
+        statuses.forEach(select => select.value = status);
+      }
+    }
+
+    // --- 3. 伙食動態新增/刪除 ---
+    function addMealRow(name = '', type = '吃稀飯', custom = '') {
+      const container = document.getElementById('mealContainer');
+      const div = document.createElement('div');
+      div.className = 'meal-row bg-white p-3 rounded-xl border-2 border-black flex flex-wrap items-center gap-2 shadow-sm';
+      div.innerHTML = `
+        <input type="text" placeholder="姓名 (選填)" value="${name}" class="meal-name border-2 border-gray-400 p-1.5 rounded-lg flex-1 min-w-[100px] font-bold">
+        <select class="meal-type border-2 border-gray-400 p-1.5 rounded-lg font-bold bg-green-50" onchange="toggleMealCustom(this)">
+          <option value="初一 十五吃素" ${type === '初一 十五吃素' ? 'selected' : ''}>初一 十五吃素</option>
+          <option value="吃稀飯" ${type === '吃稀飯' ? 'selected' : ''}>吃稀飯</option>
+          <option value="吃乾飯" ${type === '吃乾飯' ? 'selected' : ''}>吃乾飯</option>
+          <option value="自訂" ${type === '自訂' ? 'selected' : ''}>自由填寫</option>
+        </select>
+        <input type="text" placeholder="自由填寫說明" value="${custom}" class="meal-custom border-2 border-gray-400 p-1.5 rounded-lg flex-1 min-w-[120px] font-bold ${type === '自訂' ? '' : 'hidden'}">
+        <button onclick="this.parentElement.remove()" class="bg-red-500 text-white font-bold px-2 py-1 rounded-lg border border-black hover:bg-red-600">❌</button>
+      `;
+      container.appendChild(div);
+    }
+
+    function toggleMealCustom(selectEl) {
+      const customInput = selectEl.parentElement.querySelector('.meal-custom');
+      if (selectEl.value === '自訂') {
+        customInput.classList.remove('hidden');
+      } else {
+        customInput.classList.add('hidden');
+      }
+    }
+
+    // --- 4. 備註動態新增/刪除 ---
+    function addNoteRow(name = '', reason = '') {
+      const container = document.getElementById('noteContainer');
+      const div = document.createElement('div');
+      div.className = 'note-row bg-white p-3 rounded-xl border-2 border-black flex flex-wrap items-center gap-2 shadow-sm';
+      div.innerHTML = `
+        <input type="text" placeholder="姓名 (選填)" value="${name}" class="note-name border-2 border-gray-400 p-1.5 rounded-lg w-28 font-bold">
+        <input type="text" placeholder="原因備註" value="${reason}" class="note-reason border-2 border-gray-400 p-1.5 rounded-lg flex-1 min-w-[150px] font-bold">
+        <button onclick="this.parentElement.remove()" class="bg-red-500 text-white font-bold px-2 py-1 rounded-lg border border-black hover:bg-red-600">❌</button>
+      `;
+      container.appendChild(div);
+    }
+
+    // --- 資料收集函數 (過濾未填寫之項目) ---
+    function collectData() {
+      const date = document.getElementById('leaveDate').value.trim();
+      const caseName = document.getElementById('caseName').value.trim();
+
+      // 出席：必須填寫姓名才算有效
+      const attRows = document.querySelectorAll('.attendance-row');
+      const attendance = [];
+      attRows.forEach(row => {
+        const name = row.querySelector('.att-name').value.trim();
+        const status = row.querySelector('.att-status').value;
+        if (name) attendance.push({ name, status });
+      });
+
+      // 交通車：必須填寫姓名才算有效
+      const busRows = document.querySelectorAll('.bus-row');
+      const bus = [];
+      busRows.forEach(row => {
+        const name = row.querySelector('.bus-name').value.trim();
+        const status = row.querySelector('.bus-status').value;
+        if (name) bus.push({ name, status });
+      });
+
+      // 伙食：必須填寫姓名才算有效
+      const mealRows = document.querySelectorAll('.meal-row');
+      const meal = [];
+      mealRows.forEach(row => {
+        const name = row.querySelector('.meal-name').value.trim();
+        const type = row.querySelector('.meal-type').value;
+        const custom = row.querySelector('.meal-custom').value.trim();
+        let finalMeal = type;
+        if (type === '自訂') {
+          finalMeal = custom || '自由填寫';
+        }
+        if (name) meal.push({ name, status: finalMeal });
+      });
+
+      // 備註：姓名或原因任一有填寫才算有效
+      const noteRows = document.querySelectorAll('.note-row');
+      const notes = [];
+      noteRows.forEach(row => {
+        const name = row.querySelector('.note-name').value.trim();
+        const reason = row.querySelector('.note-reason').value.trim();
+        if (name || reason) notes.push({ name, reason });
+      });
+
+      return { date, caseName, attendance, bus, meal, notes };
+    }
+
+    // --- 5. 產生格式化文字與自動複製 (無內容項目不生成) ---
+    function generateText() {
+      const data = collectData();
+      let text = `【長輩請假通知 🍄 ✨ 🌟】\n\n`;
+      
+      if (data.date) {
+        text += `📅 日期：${data.date}\n`;
+      }
+      if (data.caseName) {
+        text += `👤 個案：${data.caseName}\n`;
+      }
+      if (data.date || data.caseName) {
+        text += `\n`;
+      }
+
+      // 出席
+      if (data.attendance.length > 0) {
+        text += `🏫 出席：\n`;
+        data.attendance.forEach(item => {
+          text += `${item.name} - ${item.status}\n`;
+        });
+        text += `\n`;
+      }
+
+      // 交通車
+      if (data.bus.length > 0) {
+        text += `🚐 交通車：\n`;
+        data.bus.forEach(item => {
+          text += `${item.name} - ${item.status}\n`;
+        });
+        text += `\n`;
+      }
+
+      // 伙食
+      if (data.meal.length > 0) {
+        text += `🍱 伙食：\n`;
+        data.meal.forEach(item => {
+          text += `${item.name} - ${item.status}\n`;
+        });
+        text += `\n`;
+      }
+
+      // 備註
+      if (data.notes.length > 0) {
+        text += `📌 備註：\n`;
+        data.notes.forEach(item => {
+          text += `${item.name ? item.name + '：' : ''}${item.reason}\n`;
+        });
+      }
+
+      // 顯示於 Textarea
+      const outputArea = document.getElementById('outputText');
+      outputArea.value = text.trim();
+      document.getElementById('textPreviewSection').classList.remove('hidden');
+
+      // 複製到剪貼簿
+      copyToClipboard(text.trim());
+    }
+
+    function copyToClipboard(text) {
+      const copyNotice = document.getElementById('copyNotice');
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).then(() => {
+          showCopyNotice();
+        }).catch(() => {
+          fallbackCopy(text);
+        });
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.focus();
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showCopyNotice();
+      } catch (err) {
+        console.error('複製失敗', err);
+      }
+      document.body.removeChild(textArea);
+    }
+
+    function showCopyNotice() {
+      const copyNotice = document.getElementById('copyNotice');
+      copyNotice.classList.remove('hidden');
+      setTimeout(() => {
+        copyNotice.classList.add('hidden');
+      }, 3000);
+    }
+
+    // --- 6. 繪製瑪利歐冒險風格 Canvas 圖卡 (僅呈現有填寫之項目) ---
+    function generateImagePreview() {
+      const data = collectData();
+      const canvas = document.getElementById('marioCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // 設定固定寬度與動態高度計算
+      const width = 600;
+      let height = 180; // 基礎標頭與底部邊框高度
+
+      if (data.date) height += 30;
+      if (data.caseName) height += 30;
+
+      if (data.attendance.length > 0) height += 35 + data.attendance.length * 28;
+      if (data.bus.length > 0) height += 35 + data.bus.length * 28;
+      if (data.meal.length > 0) height += 35 + data.meal.length * 28;
+      if (data.notes.length > 0) height += 35 + data.notes.length * 28;
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // 背景 - 瑪利歐天藍色
+      ctx.fillStyle = '#5c94fc';
+      ctx.fillRect(0, 0, width, height);
+
+      // 繪製頂部紅磚塊裝飾
+      ctx.fillStyle = '#b84418';
+      ctx.fillRect(0, 0, width, 50);
+      ctx.fillStyle = '#f8b800';
+      ctx.fillRect(0, 46, width, 4);
+
+      // 標題文字
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 24px "Noto Sans TC", sans-serif';
+      ctx.shadowColor = '#000000';
+      ctx.shadowBlur = 4;
+      ctx.shadowOffsetX = 2;
+      ctx.shadowOffsetY = 2;
+      ctx.fillText('🍄 長輩請假通知 🌟', 20, 34);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+
+      // 主要內頁白框 (像素卡片風格)
+      const margin = 20;
+      const cardX = margin;
+      const cardY = 65;
+      const cardW = width - margin * 2;
+      const cardH = height - cardY - 40;
+
+      // 卡片外框與背景
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(cardX, cardY, cardW, cardH);
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#000000';
+      ctx.strokeRect(cardX, cardY, cardW, cardH);
+
+      let currentY = cardY + 30;
+      const leftX = cardX + 25;
+
+      // 日期與個案
+      if (data.date) {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+        ctx.fillText(`📅 日期：${data.date}`, leftX, currentY);
+        currentY += 28;
+      }
+
+      if (data.caseName) {
+        ctx.fillStyle = '#000000';
+        ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+        ctx.fillText(`👤 個案：${data.caseName}`, leftX, currentY);
+        currentY += 28;
+      }
+
+      if (data.date || data.caseName) {
+        ctx.strokeStyle = '#e0e0e0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(leftX, currentY - 10);
+        ctx.lineTo(cardX + cardW - 25, currentY - 10);
+        ctx.stroke();
+      }
+
+      // Section 1: 出席
+      if (data.attendance.length > 0) {
+        ctx.fillStyle = '#d97706';
+        ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+        ctx.fillText('🏫 出席：', leftX, currentY);
+        currentY += 25;
+
+        ctx.fillStyle = '#333333';
+        ctx.font = '16px "Noto Sans TC", sans-serif';
+        data.attendance.forEach(item => {
+          ctx.fillText(`  • ${item.name} ： ${item.status}`, leftX, currentY);
+          currentY += 25;
+        });
+      }
+
+      // Section 2: 交通車
+      if (data.bus.length > 0) {
+        currentY += 5;
+        ctx.fillStyle = '#1d4ed8';
+        ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+        ctx.fillText('🚐 交通車：', leftX, currentY);
+        currentY += 25;
+
+        ctx.fillStyle = '#333333';
+        ctx.font = '16px "Noto Sans TC", sans-serif';
+        data.bus.forEach(item => {
+          ctx.fillText(`  • ${item.name} ： ${item.status}`, leftX, currentY);
+          currentY += 25;
+        });
+      }
+
+      // Section 3: 伙食
+      if (data.meal.length > 0) {
+        currentY += 5;
+        ctx.fillStyle = '#15803d';
+        ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+        ctx.fillText('🍱 伙食：', leftX, currentY);
+        currentY += 25;
+
+        ctx.fillStyle = '#333333';
+        ctx.font = '16px "Noto Sans TC", sans-serif';
+        data.meal.forEach(item => {
+          ctx.fillText(`  • ${item.name} ： ${item.status}`, leftX, currentY);
+          currentY += 25;
+        });
+      }
+
+      // Section 4: 備註
+      if (data.notes.length > 0) {
+        currentY += 5;
+        ctx.fillStyle = '#be185d';
+        ctx.font = 'bold 18px "Noto Sans TC", sans-serif';
+        ctx.fillText('📌 備註：', leftX, currentY);
+        currentY += 25;
+
+        ctx.fillStyle = '#333333';
+        ctx.font = '16px "Noto Sans TC", sans-serif';
+        data.notes.forEach(item => {
+          ctx.fillText(`  • ${item.name ? item.name + '：' : ''}${item.reason}`, leftX, currentY);
+          currentY += 25;
+        });
+      }
+
+      // 底部裝飾 (草地與水管)
+      const groundY = height - 30;
+      ctx.fillStyle = '#00a800';
+      ctx.fillRect(0, groundY, width, 30);
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, groundY, width, 4);
+
+      // 水管造型 (右下角)
+      const pipeX = width - 80;
+      const pipeY = groundY - 45;
+      ctx.fillStyle = '#00a800';
+      ctx.fillRect(pipeX, pipeY, 50, 45);
+      ctx.fillRect(pipeX - 5, pipeY, 60, 15);
+      ctx.strokeStyle = '#000000';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(pipeX, pipeY, 50, 45);
+      ctx.strokeRect(pipeX - 5, pipeY, 60, 15);
+
+      // 轉換成圖片呈現
+      const img = document.getElementById('previewImage');
+      img.src = canvas.toDataURL('image/png');
+      img.classList.remove('hidden');
+
+      document.getElementById('imagePreviewSection').classList.remove('hidden');
+      document.getElementById('imagePreviewSection').scrollIntoView({ behavior: 'smooth' });
+    }
+  </script>
+</body>
+</html>

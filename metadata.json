@@ -1,0 +1,6 @@
+{
+  "name": "長輩請假通知系統 - 瑪利歐冒險版",
+  "description": "日照中心與長青長者專用的瑪利歐蘑菇冒險風格請假通知生成器，快速登記出席、交通車、伙食與備註，一鍵產生格式化訊息與精美圖卡。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
